@@ -113,6 +113,7 @@ func index(conn *gorm.DB, c *gin.Context) {
 		"meeting_js":          makeNewMeetingsJS(meetings),
 		"now":                 now,
 		"hours_from":          then,
+		"today":               now.Format("Monday"),
 	})
 }
 

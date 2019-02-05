@@ -60,6 +60,7 @@
 		</div>
 		<div class="row" id="doc-wrapper">
 			<main class="col-sm col-md col-lg" id="doc-content">
+				{% if latest_meeting_list %}
 				<div>
 					<div class="row">
 						<div class="col-sm col-md col-lg">
@@ -68,6 +69,7 @@
 						</div>
 					</div>
 				</div>
+				{% endif %}
 				{% block content %}{% endblock %}
 			</main>
 		</div>
@@ -88,11 +90,9 @@
       </div>
       <!-- Grid row -->
 
-			<!-- Copyright -->
-			<div class="footer-copyright text-center">©  {% now "Y" %} Copyright:
+			<div class="footer-copyright text-center">{% now "2006" %}
 				<a href="https://github.com/AAHelper/AAHelper"> AAHelper.com</a>
 			</div>
-			<!-- Copyright -->
 		</footer>
 	</div>
 </body>
