@@ -91,7 +91,7 @@ func index(conn *gorm.DB, c *gin.Context) {
 
 	now := time.Now()
 
-	now = now.Add(time.Duration(-2) * time.Hour)
+	// now = now.Add(time.Duration(-2) * time.Hour)
 	conn.Set("gorm:auto_preload", true)
 	nowt := now.Format("15:04")
 	then := now.Add(time.Duration(+3) * time.Hour)
