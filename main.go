@@ -74,9 +74,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if gin.IsDebugging() {
-		db.LogMode(true)
-	}
+	// if gin.IsDebugging() {
+	db.LogMode(true)
+	// }
 
 	defer db.Close()
 
