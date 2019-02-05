@@ -89,7 +89,11 @@ func index(conn *gorm.DB, c *gin.Context) {
 	meetings := []models.VirtualMeeting{}
 	m := models.VirtualMeeting{}
 
-	now := time.Now()
+	// TODO: Figure out a long term solution for this.
+	// Setting the timezone manually like this is probably
+	// not the best way to handle it long-term.
+	loc, _ := time.LoadLocation("America/Los_Angeles")
+	now := time.Now().In(loc)
 
 	// now = now.Add(time.Duration(-2) * time.Hour)
 	conn.Set("gorm:auto_preload", true)
