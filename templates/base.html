@@ -1,0 +1,100 @@
+{% spaceless %}
+<html>
+<head>
+	<title>AA San Diego Helper</title>
+	<link rel="stylesheet" href="/static/styles.min.css">
+<style>
+       /* Set the size of the div element that contains the map */
+      #map {
+        height: 50%;  /* The height is 400 pixels */
+        width: 100%;  /* The width is the width of the web page */
+       }
+    </style>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="shortcut icon" type="image/png" href="/static/favicons/favicon.ico"/>
+	<link rel="apple-touch-icon" sizes="180x180" href="/static/favicons/apple-touch-icon.png"/>
+	<link rel="icon" type="image/png" sizes="32x32" href="/static/favicons/favicon-32x32.png"/>
+	<link rel="icon" type="image/png" sizes="16x16" href="/static/favicons/favicon-16x16.png"/>
+	<link rel="manifest" href="/site.webmanifest">
+</head>
+<body>
+	<div id="root" class="container wrapper">
+		<header class="row">
+			<h2 class="button col-sm col-md col-lg">
+					<a href="/" class="button">AA San Diego Helper</a>
+			</h2>
+		</header>
+		<div class="row">
+			{# <input type="checkbox" id="drawer-control" class="drawer"> #}
+			<div class="col col-sm col-md col-lg">
+				<div class="collapse">
+					<input type="checkbox" id="collapse-search" aria-hidden="true">
+					<label for="collapse-search" aria-hidden="true">Refine Search</label>
+					<div>
+						<form action="/" method="post">
+							<fieldset>
+								<legend class="doc">Refine Search</legend>
+								<div class="row">
+									{% if form.errors %}
+										<ul class="errors">
+											{% for error in form.errors %}
+												<li>{{ error }}</li>
+											{% endfor %}
+										</ul>
+									{% endif %}
+									{% for field in form %}
+									<div class="col-md">
+										<label class="doc" for="{{field.id_for_label}}"><strong>{{ field.label }}</strong></label><br />
+											{{ field }}
+										</div>
+									{% endfor %}
+									<div class="col-md">
+										<input type="submit" value="Search" />
+									</div>
+								</div>
+							</fieldset>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row" id="doc-wrapper">
+			<main class="col-sm col-md col-lg" id="doc-content">
+				<div>
+					<div class="row">
+						<div class="col-sm col-md col-lg">
+							<h1>Meeting Map!</h1>
+							<div id="map"></div>
+						</div>
+					</div>
+				</div>
+				{% block content %}{% endblock %}
+			</main>
+		</div>
+		<footer>
+<!-- Grid row -->
+      <div class="row">
+
+        <!-- Grid column -->
+        <div class="col-md-6 mt-md-0 mt-3">
+
+          <!-- Content -->
+          <h5 class="text-uppercase">Problems with the site?</h5>
+          <p>Development happens at the <a href="https://github.com/AAHelper/AAHelper">AAHelper.com repository</a>.</p>
+
+        </div>
+        <!-- Grid column -->
+
+      </div>
+      <!-- Grid row -->
+
+			<!-- Copyright -->
+			<div class="footer-copyright text-center">©  {% now "Y" %} Copyright:
+				<a href="https://github.com/AAHelper/AAHelper"> AAHelper.com</a>
+			</div>
+			<!-- Copyright -->
+		</footer>
+	</div>
+</body>
+
+{% endspaceless %}

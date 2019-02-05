@@ -1,0 +1,38 @@
+    <table class="striped hoverable">
+        <caption>Meetings {% if area and area.ID %} for {{ area.String()|title }}{% endif %}</caption>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Time</th>
+                {% if not index %}<th>Days</th>{% endif %}
+                <th>Area</th>
+                <th>Codes</th>
+                <th>Notes</th>
+                {% if not location %}<th>Location</th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for meeting in latest_meeting_list %}
+            <tr>
+                <td data-label="Name"><a href="{{meeting.URL}}", location="_system"><span class="icon-location"></span>{# <a href="{% url 'aafinder:meeting_detail' pk=meeting.id %}"> #}{{ meeting.Name|title }}{# </a> #}</td>
+                <td data-label="Time">{{meeting.Time|time:"3:04 PM"}}</td>
+                {% if not index %}<td data-label="Days">{% for m in meeting.Types %}{{ m.Type }}{% if not forloop.Last %}, {% endif  %}{% endfor %}</td>{% endif %}
+                <td data-label="Area"><a href="/area/{{ meeting.AreaSlug }}/">{{ meeting.Area }}</a></td>
+                <td data-label="Codes">
+                    {% with meeting.Codes as codes %}
+                        {% if codes %}
+                            <div class="col">
+                                {% for code in codes %}
+                                    <div class="col">{{ code.Description }}</div><br />
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </td>
+                <td data-label="Notes">{{ meeting.Notes }}</td>
+                {% if not location %}<td data-label="Location"><a href="/locations/{{ meeting.LocationID.Value}}/">Other meetings at this location.</a></td>{% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% include 'js_map.html' %}
