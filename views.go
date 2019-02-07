@@ -108,7 +108,7 @@ var cachedAreaOptions [][]string
 func createOptionsFromRows(rows *sql.Rows, count int) [][]string {
 	options := make([][]string, count+1)
 	i := 1
-	var option string
+	var option, slug string
 	options[0] = make([]string, 4)
 	options[0][0] = "all"
 	options[0][1] = "all"
@@ -116,10 +116,10 @@ func createOptionsFromRows(rows *sql.Rows, count int) [][]string {
 	options[0][3] = "false"
 
 	for rows.Next() {
-		rows.Scan(&option)
+		rows.Scan(&option, &slug)
 		options[i] = make([]string, 4)
 		options[i][0] = strings.Title(strings.ToLower(option))
-		options[i][1] = strconv.Itoa(i)
+		options[i][1] = slug
 		options[i][2] = "false"
 		options[i][3] = "false"
 
@@ -132,7 +132,7 @@ func createDayOptions(conn *gorm.DB, selectedOption string) func() gforms.Select
 	if cachedDayOptions == nil {
 		var count int
 		conn.Model(&models.Type{}).Count(&count)
-		rows, err := conn.Model(&models.Type{}).Select("type").Order("id desc").Rows()
+		rows, err := conn.Model(&models.Type{}).Select("type, slug").Order("id desc").Rows()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -155,7 +155,7 @@ func createAreaOptions(conn *gorm.DB, selectedOption string) func() gforms.Selec
 	if cachedAreaOptions == nil {
 		var count int
 		conn.Model(&models.Area{}).Count(&count)
-		rows, err := conn.Model(&models.Area{}).Select("area").Order("id desc").Rows()
+		rows, err := conn.Model(&models.Area{}).Select("area, slug").Order("id desc").Rows()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -300,12 +300,6 @@ func index(conn *gorm.DB, c *gin.Context, is_post bool) {
 	nowt := now.Format("15:04")
 	then := now.Add(time.Duration(+3) * time.Hour)
 	thent := then.Format("15:04")
-	if err := m.BaseQuery(conn).
-		Where("aafinder_meeting.time between ? AND ?", nowt, thent).
-		Where("day.slug=?", strings.ToLower(now.Weekday().String())).
-		Find(&meetings).Error; err != nil {
-		log.Fatal(err)
-	}
 
 	rps := paramsFromRequest(c)
 	pretty.Println(rps)
@@ -334,12 +328,23 @@ func index(conn *gorm.DB, c *gin.Context, is_post bool) {
 	// pretty.Println(instance)
 	pretty.Println(instance.Errors())
 	// pretty.Println(instance.CleanedData)
-
+	pretty.Println(cachedDayOptions)
 	// pretty.Println(form.Html())
+	area := models.Area{}
+	if rps.Area != "all" {
+		conn.FirstOrInit(&area, &models.Area{Slug: rps.Area})
+	}
+	if err := m.BaseQuery(conn).
+		Where("aafinder_meeting.time between ? AND ?", nowt, thent).
+		Where("day.slug=?", rps.Day).
+		Find(&meetings).Error; err != nil {
+		log.Fatal(err)
+	}
 
 	c.Set("template", "templates/index.html")
 	c.Set("data", map[string]interface{}{
 		"form":                instance,
+		"area":                area,
 		"show_errors":         is_post,
 		"latest_meeting_list": meetings,
 		"meeting_js":          makeNewMeetingsJS(meetings),
