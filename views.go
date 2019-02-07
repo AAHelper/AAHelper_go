@@ -1,18 +1,22 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"log"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	// "github.com/kr/pretty"
 
 	"github.com/AAHelper/AAHelper_go/models"
+	"github.com/bluele/gforms"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
+	"github.com/kr/pretty"
 )
 
 func chunkify(actions []string) [][]string {
@@ -25,6 +29,202 @@ func chunkify(actions []string) [][]string {
 	batches = append(batches, actions)
 	return batches
 
+}
+
+type textInputWidget struct {
+	Type  string
+	Attrs map[string]string
+	gforms.Widget
+}
+
+type widgetContext struct {
+	Type  string
+	Field gforms.FieldInterface
+	Value string
+	Attrs map[string]string
+}
+
+func (wg *textInputWidget) html(f gforms.FieldInterface) string {
+	var buffer bytes.Buffer
+	err := gforms.Template.ExecuteTemplate(&buffer, "SimpleWidget", widgetContext{
+		Type:  wg.Type,
+		Field: f,
+		Attrs: wg.Attrs,
+		Value: f.GetV().RawStr,
+	})
+	if err != nil {
+		panic(err)
+	}
+	return buffer.String()
+}
+
+//TimeInputWidget Generate text input fiele: <input type="date" ...>
+func TimeInputWidget() gforms.Widget {
+	w := new(textInputWidget)
+	w.Type = "time"
+	attrs := map[string]string{}
+	w.Attrs = attrs
+	return w
+}
+
+type requestParams struct {
+	// csrfmiddlewaretoken: d19Xqg85TAjMUkNDDU6B5kt78dNPZvKOQ2tb7ZAwHwvmVMD694wxmEJgzsdcaGH2
+	Day            string
+	Time           time.Time
+	HoursFromStart int64
+	Area           string
+}
+
+func paramsFromRequest(c *gin.Context) requestParams {
+	loc, _ := time.LoadLocation("America/Los_Angeles")
+	now := time.Now().In(loc)
+
+	// now = now.Add(time.Duration(-2) * time.Hour)
+	nowt := now.Format("15:04")
+	today := now.Format("Monday")
+	temp := c.DefaultPostForm("HoursFromStart", "3")
+	hfs, _ := strconv.ParseInt(temp, 10, 0)
+
+	s := c.DefaultPostForm("Time", nowt)
+	t, err := time.Parse("15:04", s)
+
+	if err != nil {
+		log.Println("Could not convert " + s + " to date")
+	}
+	rp := requestParams{
+		Day:            c.DefaultPostForm("Day", today),
+		Time:           t,
+		HoursFromStart: hfs,
+		Area:           c.DefaultPostForm("Area", "all"),
+	}
+	pretty.Println(rp)
+	return rp
+
+}
+
+var cachedDayOptions [][]string
+var cachedAreaOptions [][]string
+
+func createOptionsFromRows(rows *sql.Rows, count int) [][]string {
+	options := make([][]string, count+1)
+	i := 1
+	var option string
+	options[0] = make([]string, 4)
+	options[0][0] = "all"
+	options[0][1] = "all"
+	options[0][2] = "false"
+	options[0][3] = "false"
+
+	for rows.Next() {
+		rows.Scan(&option)
+		options[i] = make([]string, 4)
+		options[i][0] = strings.Title(strings.ToLower(option))
+		options[i][1] = strconv.Itoa(i)
+		options[i][2] = "false"
+		options[i][3] = "false"
+
+		i++
+	}
+	return options
+}
+
+func createDayOptions(conn *gorm.DB, selectedOption string) func() gforms.SelectOptions {
+	if cachedDayOptions == nil {
+		var count int
+		conn.Model(&models.Type{}).Count(&count)
+		rows, err := conn.Model(&models.Type{}).Select("type").Order("id desc").Rows()
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer rows.Close()
+		cachedDayOptions = createOptionsFromRows(rows, count)
+	}
+	return func() gforms.SelectOptions {
+		options := make([][]string, len(cachedDayOptions))
+		copy(options, cachedDayOptions)
+		for _, values := range options {
+			if values[1] == selectedOption {
+				values[2] = "true"
+			}
+		}
+		return gforms.StringSelectOptions(options)
+	}
+}
+func createAreaOptions(conn *gorm.DB, selectedOption string) func() gforms.SelectOptions {
+	// conn.Select("aafinder_meetingtype.Type, aafinder_meetingtype.slug"
+	if cachedAreaOptions == nil {
+		var count int
+		conn.Model(&models.Area{}).Count(&count)
+		rows, err := conn.Model(&models.Area{}).Select("area").Order("id desc").Rows()
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer rows.Close()
+		cachedAreaOptions = createOptionsFromRows(rows, count)
+
+	}
+	return func() gforms.SelectOptions {
+		options := make([][]string, len(cachedAreaOptions))
+		copy(options, cachedAreaOptions)
+		for _, values := range options {
+			if values[1] == selectedOption {
+				values[2] = "true"
+			}
+		}
+		return gforms.StringSelectOptions(options)
+
+	}
+}
+
+func createForm(conn *gorm.DB, c *gin.Context, rps requestParams) gforms.Form {
+	// options := createDayOptions(conn, rps.Day)
+	// areas := createAreaOptions(conn, rps.Area)
+	options := createDayOptions(conn, rps.Day)
+	areas := createAreaOptions(conn, rps.Area)
+	form := gforms.DefineForm(
+		gforms.NewFields(
+			gforms.NewTextField(
+				"Day",
+				gforms.Validators{
+					gforms.Required(),
+				},
+				gforms.SelectWidget(
+					map[string]string{},
+					options,
+				),
+			),
+			gforms.NewDateTimeField(
+				"Time",
+				"15:04",
+				gforms.Validators{},
+				// gforms.TextInputWidget(
+				// 	map[string]string{
+				// 		"type": "time",
+				// 	},
+				// ),
+				TimeInputWidget(),
+			),
+			gforms.NewIntegerField(
+				"HoursFromStart",
+				gforms.Validators{
+					gforms.Required(),
+				},
+			),
+			gforms.NewTextField(
+				"Area",
+				gforms.Validators{
+					gforms.Required(),
+				},
+				gforms.SelectWidget(
+					map[string]string{
+						" class": "custom",
+					},
+					areas,
+				),
+			),
+		),
+	)
+	return form
 }
 
 func createPopUpText(m models.VirtualMeeting) string {
@@ -85,7 +285,7 @@ func makeNewMeetingsJS(meetings []models.VirtualMeeting) *meetingsJS {
 	return l
 }
 
-func index(conn *gorm.DB, c *gin.Context) {
+func index(conn *gorm.DB, c *gin.Context, is_post bool) {
 	meetings := []models.VirtualMeeting{}
 	m := models.VirtualMeeting{}
 
@@ -107,8 +307,40 @@ func index(conn *gorm.DB, c *gin.Context) {
 		log.Fatal(err)
 	}
 
+	rps := paramsFromRequest(c)
+	pretty.Println(rps)
+	form := createForm(conn, c, rps)
+	instance := form()
+	if is_post {
+		pretty.Println("It's a post!")
+		instance = form.FromRequest(c.Request)
+	} else {
+		pretty.Println("NOT A POST!")
+	}
+
+	fi, exists := instance.GetField("HoursFromStart")
+	if exists {
+		fi.SetInitial("3")
+	}
+
+	fi, exists = instance.GetField("Time")
+	if exists {
+		fi.SetInitial(nowt)
+	}
+
+	if instance.IsValid() {
+		instance.MapTo(&rps)
+	}
+	// pretty.Println(instance)
+	pretty.Println(instance.Errors())
+	// pretty.Println(instance.CleanedData)
+
+	// pretty.Println(form.Html())
+
 	c.Set("template", "templates/index.html")
 	c.Set("data", map[string]interface{}{
+		"form":                instance,
+		"show_errors":         is_post,
 		"latest_meeting_list": meetings,
 		"meeting_js":          makeNewMeetingsJS(meetings),
 		"now":                 now,

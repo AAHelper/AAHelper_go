@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "QCaIDXpZPgVvxPM+AXzeOW6D97A=",
+			"path": "github.com/bluele/gforms",
+			"revision": "ac0a9c72d260a96e20e4a6af0d5c138cce383357",
+			"revisionTime": "2016-02-29T14:15:23Z"
+		},
+		{
 			"checksumSHA1": "7DxViusFRJ7UPH0jZqYatwDrOkY=",
 			"path": "github.com/elazarl/go-bindata-assetfs",
 			"revision": "38087fe4dafb822e541b3f7955075cc1c30bd294",

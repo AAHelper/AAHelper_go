@@ -74,9 +74,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// if gin.IsDebugging() {
-	db.LogMode(true)
-	// }
+	if gin.IsDebugging() {
+		db.LogMode(true)
+	}
 
 	defer db.Close()
 
@@ -106,10 +106,10 @@ func main() {
 	})
 
 	r.GET("/", ginpongo2.Pongo2(), func(c *gin.Context) {
-		index(db, c)
+		index(db, c, false)
 	})
 	r.POST("/", ginpongo2.Pongo2(), func(c *gin.Context) {
-		index(db, c)
+		index(db, c, true)
 	})
 	r.GET("/locations/:id", ginpongo2.Pongo2(), func(c *gin.Context) {
 		id := c.Param("id")
