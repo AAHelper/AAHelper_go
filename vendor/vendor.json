@@ -201,5 +201,8 @@
 			"revisionTime": "2018-11-15T11:05:04Z"
 		}
 	],
-	"rootPath": "github.com/AAHelper/AAHelper_go"
+	"rootPath": "github.com/AAHelper/AAHelper_go",
+	"heroku": {
+		"goVersion": "go1.10.3"
+	}
 }
