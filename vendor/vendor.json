@@ -93,6 +93,12 @@
 			"revisionTime": "2018-03-08T03:36:59Z"
 		},
 		{
+			"checksumSHA1": "UE4lhbPYYWEhqHXQk24OA73m5+8=",
+			"path": "github.com/joho/godotenv/autoload",
+			"revision": "69ed1d913aa885da390dd6de9febf063d101b097",
+			"revisionTime": "2018-11-20T19:47:48Z"
+		},
+		{
 			"checksumSHA1": "ZaMTUL/2qizeR9UzeZTDOqXEPLI=",
 			"path": "github.com/juju/errors",
 			"revision": "089d3ea4e4d597bd98acac068193d341983326a3",

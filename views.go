@@ -16,7 +16,6 @@ import (
 	"github.com/bluele/gforms"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	"github.com/kr/pretty"
 )
 
 func chunkify(actions []string) [][]string {
@@ -75,6 +74,22 @@ type requestParams struct {
 	Area           string
 }
 
+func (r *requestParams) getFutureTime() time.Time {
+	now := r.Time
+	then := now.Add(time.Duration(+3) * time.Hour)
+	// there will be one second in the day where this is incorrect
+	// And I do not care.
+	if now.Hour() > 21 {
+		hours := 23 - now.Hour()
+		minutes := 59 - now.Minute()
+		seconds := 59 - now.Second()
+		then = now.Add(
+			(time.Duration(hours) * time.Hour) + (time.Duration(minutes) * time.Minute) + (time.Duration(seconds) * time.Second))
+	}
+
+	return then
+}
+
 func paramsFromRequest(c *gin.Context) requestParams {
 	loc, _ := time.LoadLocation("America/Los_Angeles")
 	now := time.Now().In(loc)
@@ -97,7 +112,6 @@ func paramsFromRequest(c *gin.Context) requestParams {
 		HoursFromStart: hfs,
 		Area:           c.DefaultPostForm("Area", "all"),
 	}
-	pretty.Println(rp)
 	return rp
 
 }
@@ -132,7 +146,7 @@ func createDayOptions(conn *gorm.DB, selectedOption string) func() gforms.Select
 	if cachedDayOptions == nil {
 		var count int
 		conn.Model(&models.Type{}).Count(&count)
-		rows, err := conn.Model(&models.Type{}).Select("type, slug").Order("id desc").Rows()
+		rows, err := conn.Model(&models.Type{}).Select("type, slug").Order("id asc").Rows()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -285,31 +299,27 @@ func makeNewMeetingsJS(meetings []models.VirtualMeeting) *meetingsJS {
 	return l
 }
 
-func index(conn *gorm.DB, c *gin.Context, is_post bool) {
+func index(conn *gorm.DB, c *gin.Context, isPost bool) {
 	meetings := []models.VirtualMeeting{}
 	m := models.VirtualMeeting{}
 
 	// TODO: Figure out a long term solution for this.
 	// Setting the timezone manually like this is probably
 	// not the best way to handle it long-term.
-	loc, _ := time.LoadLocation("America/Los_Angeles")
-	now := time.Now().In(loc)
+	// loc, _ := time.LoadLocation("America/Los_Angeles")
+	// now := time.Now().In(loc)
 
 	// now = now.Add(time.Duration(-2) * time.Hour)
 	conn.Set("gorm:auto_preload", true)
-	nowt := now.Format("15:04")
-	then := now.Add(time.Duration(+3) * time.Hour)
-	thent := then.Format("15:04")
 
 	rps := paramsFromRequest(c)
-	pretty.Println(rps)
 	form := createForm(conn, c, rps)
 	instance := form()
-	if is_post {
-		pretty.Println("It's a post!")
+	if isPost {
+		// pretty.Println("It's a post!")
 		instance = form.FromRequest(c.Request)
 	} else {
-		pretty.Println("NOT A POST!")
+		// pretty.Println("NOT A POST!")
 	}
 
 	fi, exists := instance.GetField("HoursFromStart")
@@ -319,38 +329,40 @@ func index(conn *gorm.DB, c *gin.Context, is_post bool) {
 
 	fi, exists = instance.GetField("Time")
 	if exists {
-		fi.SetInitial(nowt)
+		fi.SetInitial(rps.Time.Format("15:04"))
 	}
 
 	if instance.IsValid() {
 		instance.MapTo(&rps)
 	}
+
 	// pretty.Println(instance)
-	pretty.Println(instance.Errors())
+	// pretty.Println(instance.Errors())
 	// pretty.Println(instance.CleanedData)
-	pretty.Println(cachedDayOptions)
+	// pretty.Println(cachedDayOptions)
 	// pretty.Println(form.Html())
 	area := models.Area{}
 	if rps.Area != "all" {
 		conn.FirstOrInit(&area, &models.Area{Slug: rps.Area})
 	}
-	if err := m.BaseQuery(conn).
-		Where("aafinder_meeting.time between ? AND ?", nowt, thent).
-		Where("day.slug=?", rps.Day).
+
+	if err := m.QueryWithDay(conn).
+		Where("aafinder_meeting.time >= ? AND aafinder_meeting.time <= ?", rps.Time.Format("15:04"), rps.getFutureTime().Format("15:04")).
+		Where("day.slug=?", strings.ToLower(rps.Day)).
 		Find(&meetings).Error; err != nil {
 		log.Fatal(err)
 	}
-
+	// pretty.Println(rps)
 	c.Set("template", "templates/index.html")
 	c.Set("data", map[string]interface{}{
 		"form":                instance,
 		"area":                area,
-		"show_errors":         is_post,
+		"show_errors":         isPost,
 		"latest_meeting_list": meetings,
 		"meeting_js":          makeNewMeetingsJS(meetings),
-		"now":                 now,
-		"hours_from":          then,
-		"today":               now.Format("Monday"),
+		"now":                 rps.Time,
+		"hours_from":          rps.getFutureTime(),
+		"today":               rps.Day,
 	})
 }
 
@@ -361,7 +373,7 @@ func locationDetail(locationID int64, conn *gorm.DB, c *gin.Context) {
 	if err := conn.Where(&models.Location{ID: locationID}).First(&location).Error; err != nil {
 		log.Fatal(err)
 	}
-	if err := m.BaseQuery(conn).
+	if err := m.QueryNoDay(conn).
 		Where("aafinder_meeting.location_id=?", location.ID).
 		Find(&meetings).Error; err != nil {
 		log.Fatal(err)
@@ -385,7 +397,7 @@ func areaDetail(Slug string, conn *gorm.DB, c *gin.Context) {
 		log.Fatal(err)
 	}
 
-	if err := m.BaseQuery(conn).
+	if err := m.QueryNoDay(conn).
 		Where("aafinder_meeting.area_id=?", area.ID).
 		Find(&meetings).Error; err != nil {
 		log.Fatal(err)

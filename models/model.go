@@ -162,12 +162,10 @@ type VirtualMeeting struct {
 	LocationID    sql.NullInt64
 	AddressString string
 	Location      pqtype.PostGISPoint
-	// OrigFilename  string
-	// RowSrc        string
-	Notes string
-	Day   string
-	Codes []Code `gorm:"many2many:aafinder_meeting_codes;foreignkey:id;association_foreignkey:id;association_jointable_foreignkey:meetingcode_id;jointable_foreignkey:meeting_id;preload"`
-	Types []Type `gorm:"many2many:aafinder_meeting_types;foreignkey:id;association_foreignkey:id;association_jointable_foreignkey:meetingtype_id;jointable_foreignkey:meeting_id;preload"`
+	Notes         string
+	Day           string
+	Codes         []Code `gorm:"many2many:aafinder_meeting_codes;foreignkey:id;association_foreignkey:id;association_jointable_foreignkey:meetingcode_id;jointable_foreignkey:meeting_id;preload"`
+	Types         []Type `gorm:"many2many:aafinder_meeting_types;foreignkey:id;association_foreignkey:id;association_jointable_foreignkey:meetingtype_id;jointable_foreignkey:meeting_id;preload"`
 }
 
 //TableName of Meeting
@@ -175,19 +173,24 @@ func (VirtualMeeting) TableName() string {
 	return "aafinder_meeting"
 }
 
-//BaseQuery Creates the query base to generate a VirtualMeeting
-func (VirtualMeeting) BaseQuery(conn *gorm.DB) *gorm.DB {
+//QueryWithDay Creates the query base to generate a VirtualMeeting
+func (VirtualMeeting) QueryWithDay(conn *gorm.DB) *gorm.DB {
 	return conn.Select("aafinder_meeting.id as id, name, time, url, area.area as area, area.slug as area_slug, location.id as location_id, location.address_string as address_string, location.location as location, notes, day.type as day").
-		Joins("JOIN aafinder_location as location ON aafinder_meeting.location_id=location.id").
-		Joins("JOIN aafinder_meetingarea as area ON aafinder_meeting.area_id=area.id").
-		Joins("JOIN aafinder_meeting_types ON aafinder_meeting_types.meeting_id = aafinder_meeting.id").
-		Joins("JOIN aafinder_meetingtype as day ON aafinder_meeting_types.meetingtype_id=day.id").
-		Group("aafinder_meeting.id, area.area, area.slug, location.address_string, location.location, location.id, day.type").
-		Order("aafinder_meeting.time, aafinder_meeting.name DESC").
+		Joins("INNER JOIN aafinder_meeting_types ON (aafinder_meeting_types.meeting_id = aafinder_meeting.id)").
+		Joins("INNER JOIN aafinder_meetingtype as day ON aafinder_meeting_types.meetingtype_id=day.id").
+		Joins("LEFT OUTER JOIN aafinder_meetingarea as area ON aafinder_meeting.area_id=area.id").
+		Joins("LEFT OUTER JOIN aafinder_location as location ON aafinder_meeting.location_id=location.id").
+		Order("aafinder_meeting.time ASC, aafinder_meeting.name DESC").
 		Preload("Codes").
 		Preload("Types")
 }
 
-func (vm *VirtualMeeting) GetJSLocationText() {
-
+//QueryNoDay Creates the query base to generate a VirtualMeeting, without a day
+func (VirtualMeeting) QueryNoDay(conn *gorm.DB) *gorm.DB {
+	return conn.Select("aafinder_meeting.id as id, name, time, url, area.area as area, area.slug as area_slug, location.id as location_id, location.address_string as address_string, location.location as location, notes").
+		Joins("LEFT OUTER JOIN aafinder_meetingarea as area ON aafinder_meeting.area_id=area.id").
+		Joins("LEFT OUTER JOIN aafinder_location as location ON aafinder_meeting.location_id=location.id").
+		Order("aafinder_meeting.time ASC, aafinder_meeting.name DESC").
+		Preload("Codes").
+		Preload("Types")
 }
