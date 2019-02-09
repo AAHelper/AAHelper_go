@@ -242,6 +242,10 @@ func createForm(conn *gorm.DB, c *gin.Context, rps requestParams) gforms.Form {
 	return form
 }
 
+func replaceSingleQuote(s string) string {
+	return strings.Replace(s, "'", "\\'", -1)
+}
+
 func createPopUpText(m models.VirtualMeeting) string {
 	var s []string
 	meetingDays := m.Types
@@ -258,9 +262,9 @@ func createPopUpText(m models.VirtualMeeting) string {
 	// days := strings.Join(s[:], ",")
 	return fmt.Sprintf(
 		"<p>%s<br /><a href=\"%s\">MAP</a><br />%s%s <br />%s</p><hr />",
-		m.Name,
+		replaceSingleQuote(m.Name),
 		m.URL,
-		m.AddressString,
+		replaceSingleQuote(m.AddressString),
 		days,
 		m.Time.Format("15:04"),
 	)
