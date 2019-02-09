@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	_ "github.com/joho/godotenv/autoload"
 	"github.com/ngerakines/ginpongo2"
 )
 
@@ -123,6 +124,6 @@ func main() {
 
 	e := r.Run(":" + port)
 	if e != nil {
-		panic("Fuck!")
+		panic("Could not run :(")
 	}
 }
