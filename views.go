@@ -16,6 +16,7 @@ import (
 	"github.com/bluele/gforms"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
+	"github.com/kr/pretty"
 )
 
 func chunkify(actions []string) [][]string {
@@ -352,9 +353,7 @@ func index(conn *gorm.DB, c *gin.Context, isPost bool) {
 		Find(&meetings).Error; err != nil {
 		log.Fatal(err)
 	}
-	// pretty.Println(rps)
-	c.Set("template", "templates/index.html")
-	c.Set("data", map[string]interface{}{
+	data := map[string]interface{}{
 		"form":                instance,
 		"area":                area,
 		"show_errors":         isPost,
@@ -363,7 +362,12 @@ func index(conn *gorm.DB, c *gin.Context, isPost bool) {
 		"now":                 rps.Time,
 		"hours_from":          rps.getFutureTime(),
 		"today":               rps.Day,
-	})
+	}
+	if gin.IsDebugging() {
+		pretty.Println(data)
+	}
+	c.Set("template", "templates/index.html")
+	c.Set("data", data)
 }
 
 func locationDetail(locationID int64, conn *gorm.DB, c *gin.Context) {
