@@ -20,11 +20,11 @@ build:
     - docker build --pull -t $TEST_IMAGE .
     - docker push $TEST_IMAGE
 
-test:
-  stage: test
-  script:
-    - docker pull $TEST_IMAGE
-    - docker run $TEST_IMAGE npm test
+# test:
+#   stage: test
+#   script:
+#     - docker pull $TEST_IMAGE
+#     - docker run $TEST_IMAGE npm test
 
 release:
   stage: release
