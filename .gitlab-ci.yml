@@ -12,7 +12,7 @@ variables:
   RELEASE_IMAGE: registry.gitlab.com/mrfunyon/aahelper_go:latest
 
 before_script:
-  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com:5555
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
 
 build:
   stage: build
