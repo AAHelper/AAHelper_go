@@ -8,8 +8,8 @@ stages:
 - release
 
 variables:
-  TEST_IMAGE: registry.gitlab.com/mrfunyon/aahelper_go:$CI_COMMIT_REF_NAME
-  RELEASE_IMAGE: registry.gitlab.com/mrfunyon/aahelper_go:latest
+  TEST_IMAGE: registry.gitlab.com/aahelper/aahelper_go:$CI_COMMIT_REF_NAME
+  RELEASE_IMAGE: registry.gitlab.com/aahelper/aahelper_go:latest
 
 before_script:
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
