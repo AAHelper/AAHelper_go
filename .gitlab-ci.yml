@@ -20,7 +20,7 @@ build:
   stage: build
   artifacts:
     paths:
-      imageid.txt
+      - imageid.txt
     expire_in: 1 day
   script:
     - docker build --iidfile imageid.txt --pull -t $TEST_IMAGE .
