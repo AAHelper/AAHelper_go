@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"database/sql"
 	"fmt"
 	"log"
@@ -13,10 +12,9 @@ import (
 	// "github.com/kr/pretty"
 
 	"github.com/AAHelper/AAHelper_go/models"
-	"github.com/bluele/gforms"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	"github.com/kr/pretty"
+	"github.com/mrfunyon/gforms"
 )
 
 func chunkify(actions []string) [][]string {
@@ -29,42 +27,6 @@ func chunkify(actions []string) [][]string {
 	batches = append(batches, actions)
 	return batches
 
-}
-
-type textInputWidget struct {
-	Type  string
-	Attrs map[string]string
-	gforms.Widget
-}
-
-type widgetContext struct {
-	Type  string
-	Field gforms.FieldInterface
-	Value string
-	Attrs map[string]string
-}
-
-func (wg *textInputWidget) html(f gforms.FieldInterface) string {
-	var buffer bytes.Buffer
-	err := gforms.Template.ExecuteTemplate(&buffer, "SimpleWidget", widgetContext{
-		Type:  wg.Type,
-		Field: f,
-		Attrs: wg.Attrs,
-		Value: f.GetV().RawStr,
-	})
-	if err != nil {
-		panic(err)
-	}
-	return buffer.String()
-}
-
-//TimeInputWidget Generate text input fiele: <input type="date" ...>
-func TimeInputWidget() gforms.Widget {
-	w := new(textInputWidget)
-	w.Type = "time"
-	attrs := map[string]string{}
-	w.Attrs = attrs
-	return w
 }
 
 type requestParams struct {
@@ -212,12 +174,9 @@ func createForm(conn *gorm.DB, c *gin.Context, rps requestParams) gforms.Form {
 				"Time",
 				"15:04",
 				gforms.Validators{},
-				// gforms.TextInputWidget(
-				// 	map[string]string{
-				// 		"type": "time",
-				// 	},
-				// ),
-				TimeInputWidget(),
+				gforms.TimeInputWidget(map[string]string{
+					"type": "time",
+				}),
 			),
 			gforms.NewIntegerField(
 				"HoursFromStart",
@@ -367,9 +326,9 @@ func index(conn *gorm.DB, c *gin.Context, isPost bool) {
 		"hours_from":          rps.getFutureTime(),
 		"today":               rps.Day,
 	}
-	if gin.IsDebugging() {
-		pretty.Println(data)
-	}
+	// if gin.IsDebugging() {
+	// 	pretty.Println(data)
+	// }
 	c.Set("template", "templates/index.html")
 	c.Set("data", data)
 }
