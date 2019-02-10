@@ -32,6 +32,7 @@
 					<label for="collapse-search" aria-hidden="true">Refine Search</label>
 					<div>
 						<form action="/" method="post">
+						<input type="hidden" name="_csrf" value="{{csrf_token}}">
 							<fieldset>
 								<legend class="doc">Refine Search</legend>
 								<div class="row">

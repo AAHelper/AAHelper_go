@@ -6,6 +6,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "pXA0VXOMBMY18/4WFJjqnsT51jo=",
+			"path": "github.com/dchest/uniuri",
+			"revision": "8902c56451e9b58ff940bbe5fec35d5f9c04584a",
+			"revisionTime": "2016-02-12T16:43:26Z"
+		},
+		{
 			"checksumSHA1": "7DxViusFRJ7UPH0jZqYatwDrOkY=",
 			"path": "github.com/elazarl/go-bindata-assetfs",
 			"revision": "38087fe4dafb822e541b3f7955075cc1c30bd294",
@@ -16,6 +22,18 @@
 			"path": "github.com/flosch/pongo2",
 			"revision": "79872a7b27692599b259dc751bed8b03581dd0de",
 			"revisionTime": "2018-12-25T14:00:29Z"
+		},
+		{
+			"checksumSHA1": "zPsYN/5ad47ZJsXJ10dCQ8wUQy0=",
+			"path": "github.com/gin-contrib/sessions",
+			"revision": "dc5246754963078ec815f6697f7075c0c0c7d86d",
+			"revisionTime": "2019-01-01T14:03:30Z"
+		},
+		{
+			"checksumSHA1": "eyvExzi+ADNi3cMXeld05hHhWkA=",
+			"path": "github.com/gin-contrib/sessions/cookie",
+			"revision": "dc5246754963078ec815f6697f7075c0c0c7d86d",
+			"revisionTime": "2019-01-01T14:03:30Z"
 		},
 		{
 			"checksumSHA1": "QeKwBtN2df+j+4stw3bQJ6yO4EY=",
@@ -168,6 +186,12 @@
 			"path": "github.com/ugorji/go/codec",
 			"revision": "ee1426cffec05e61aaf15dad53bac697c48546ed",
 			"revisionTime": "2019-01-28T21:31:24Z"
+		},
+		{
+			"checksumSHA1": "ETsZXONxUuWjeC0Aq3pjT2vmgJk=",
+			"path": "github.com/utrack/gin-csrf",
+			"revision": "0ef7b41f5cd579866132683f75bff7966621ca8a",
+			"revisionTime": "2019-02-08T09:02:32Z"
 		},
 		{
 			"checksumSHA1": "UQKuKY1U1JFrGVyKzE7JXMh4f/8=",

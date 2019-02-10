@@ -9,12 +9,15 @@ import (
 	"strings"
 
 	assetfs "github.com/elazarl/go-bindata-assetfs"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/ngerakines/ginpongo2"
+	csrf "github.com/utrack/gin-csrf"
 )
 
 //BinaryFS struct
@@ -70,6 +73,16 @@ func main() {
 		log.Fatal("PG_CONN not set.")
 	}
 
+	secret := os.Getenv("SECRET_KEY")
+	csrfSecret := os.Getenv("CSRF_SECRET_KEY")
+
+	if secret == "" {
+		secret = "WhaTtwaSstHhepeRrsonthinkIingwHhentheYyDdiscoveredcOow’smIilkWwasfinEefoRrhumAancoNnsumption…AandwhYyDdidtheYydOoIitIinthEefirsTtPplace!?"
+	}
+	if csrfSecret == "" {
+		csrfSecret = "HEerAanouTtOofmoneYy,sOoHhehAadTtostoPpplayIingPpoker!."
+	}
+
 	db, err := gorm.Open("postgres", conn)
 
 	if err != nil {
@@ -82,16 +95,20 @@ func main() {
 	defer db.Close()
 
 	r := gin.Default()
-	// r.Use(gin.Recovery())
 
-	// dir, err := os.Getwd()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	store := cookie.NewStore([]byte(secret))
+	session := sessions.Sessions("mysession", store)
+	r.Use(session)
+	r.Use(csrf.Middleware(csrf.Options{
+		Secret: csrfSecret,
+		ErrorFunc: func(c *gin.Context) {
+			c.String(400, "CSRF token mismatch")
+			c.Abort()
+		},
+	}))
 
 	// to rebuild the bfs tree run
 	// go-bindata -ignore '.DS*' ./static/...
-	//
 	bfs := BFS("static")
 	r.Use(static.Serve("/static", BFS("static")))
 	r.GET("/favicon.ico", func(c *gin.Context) {

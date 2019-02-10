@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"github.com/mrfunyon/gforms"
+	csrf "github.com/utrack/gin-csrf"
 )
 
 func chunkify(actions []string) [][]string {
@@ -325,6 +326,7 @@ func index(conn *gorm.DB, c *gin.Context, isPost bool) {
 		"now":                 rps.Time,
 		"hours_from":          rps.getFutureTime(),
 		"today":               rps.Day,
+		"csrf_token":          csrf.GetToken(c),
 	}
 	// if gin.IsDebugging() {
 	// 	pretty.Println(data)
@@ -352,6 +354,7 @@ func locationDetail(locationID int64, conn *gorm.DB, c *gin.Context) {
 		"meeting_js":          makeNewMeetingsJS(meetings),
 		"area":                location,
 		"index":               false,
+		"csrf_token":          csrf.GetToken(c),
 	})
 }
 
@@ -376,5 +379,6 @@ func areaDetail(Slug string, conn *gorm.DB, c *gin.Context) {
 		"meeting_js":          makeNewMeetingsJS(meetings),
 		"area":                area,
 		"index":               false,
+		"csrf_token":          csrf.GetToken(c),
 	})
 }
