@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	// "github.com/kr/pretty"
-
 	"github.com/AAHelper/AAHelper_go/models"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -30,8 +28,10 @@ func chunkify(actions []string) [][]string {
 
 }
 
+const defaultDay = "today"
+const defaultType = "all"
+
 type requestParams struct {
-	// csrfmiddlewaretoken: d19Xqg85TAjMUkNDDU6B5kt78dNPZvKOQ2tb7ZAwHwvmVMD694wxmEJgzsdcaGH2
 	Day            string
 	Time           time.Time
 	HoursFromStart int64
@@ -40,13 +40,16 @@ type requestParams struct {
 
 func (r *requestParams) getFutureTime() time.Time {
 	now := r.Time
-	then := now.Add(time.Duration(+3) * time.Hour)
+	then := now.Add(time.Duration(r.HoursFromStart) * time.Hour)
+	// pretty.Println(then.Hour(), then.Minute(), then.Second())
 	// there will be one second in the day where this is incorrect
 	// And I do not care.
-	if now.Hour() > 21 {
+	t := now.Add(time.Duration(r.HoursFromStart) * time.Hour)
+	if now.Weekday() != t.Weekday() {
 		hours := 23 - now.Hour()
 		minutes := 59 - now.Minute()
 		seconds := 59 - now.Second()
+		// pretty.Println(hours, minutes, seconds, r.HoursFromStart)
 		then = now.Add(
 			(time.Duration(hours) * time.Hour) + (time.Duration(minutes) * time.Minute) + (time.Duration(seconds) * time.Second))
 	}
@@ -54,7 +57,21 @@ func (r *requestParams) getFutureTime() time.Time {
 	return then
 }
 
+func (r *requestParams) getTodayIfDayIsAll() string {
+	if r.Day == defaultDay {
+		// TODO: Figure out a long term solution for this.
+		// Setting the timezone manually like this is probably
+
+		loc, _ := time.LoadLocation("America/Los_Angeles")
+		now := time.Now().In(loc)
+		return now.Format("Monday")
+	}
+	return r.Day
+}
+
 func paramsFromRequest(c *gin.Context) requestParams {
+	// TODO: Figure out a long term solution for this.
+	// Setting the timezone manually like this is probably
 	loc, _ := time.LoadLocation("America/Los_Angeles")
 	now := time.Now().In(loc)
 
@@ -74,7 +91,7 @@ func paramsFromRequest(c *gin.Context) requestParams {
 		Day:            c.DefaultPostForm("Day", today),
 		Time:           t,
 		HoursFromStart: hfs,
-		Area:           c.DefaultPostForm("Area", "all"),
+		Area:           c.DefaultPostForm("Area", defaultType),
 	}
 	return rp
 
@@ -83,13 +100,25 @@ func paramsFromRequest(c *gin.Context) requestParams {
 var cachedDayOptions [][]string
 var cachedAreaOptions [][]string
 
-func createOptionsFromRows(rows *sql.Rows, count int) [][]string {
+type jsLoc struct {
+	Meeting   models.VirtualMeeting
+	PopUpText string
+	Lat       float64
+	Lon       float64
+}
+
+type meetingsJS struct {
+	Meetings  []models.VirtualMeeting
+	Locations map[sql.NullInt64]jsLoc
+}
+
+func createOptionsFromRows(rows *sql.Rows, count int, defaultOptionWord string) [][]string {
 	options := make([][]string, count+1)
 	i := 1
 	var option, slug string
 	options[0] = make([]string, 4)
-	options[0][0] = "all"
-	options[0][1] = "all"
+	options[0][0] = strings.Title(defaultOptionWord)
+	options[0][1] = defaultOptionWord
 	options[0][2] = "false"
 	options[0][3] = "false"
 
@@ -115,7 +144,7 @@ func createDayOptions(conn *gorm.DB, selectedOption string) func() gforms.Select
 			log.Fatal(err)
 		}
 		defer rows.Close()
-		cachedDayOptions = createOptionsFromRows(rows, count)
+		cachedDayOptions = createOptionsFromRows(rows, count, defaultDay)
 	}
 	return func() gforms.SelectOptions {
 		options := make([][]string, len(cachedDayOptions))
@@ -138,7 +167,7 @@ func createAreaOptions(conn *gorm.DB, selectedOption string) func() gforms.Selec
 			log.Fatal(err)
 		}
 		defer rows.Close()
-		cachedAreaOptions = createOptionsFromRows(rows, count)
+		cachedAreaOptions = createOptionsFromRows(rows, count, defaultType)
 
 	}
 	return func() gforms.SelectOptions {
@@ -231,18 +260,6 @@ func createPopUpText(m models.VirtualMeeting) string {
 
 }
 
-type jsLoc struct {
-	Meeting   models.VirtualMeeting
-	PopUpText string
-	Lat       float64
-	Lon       float64
-}
-
-type meetingsJS struct {
-	Meetings  []models.VirtualMeeting
-	Locations map[sql.NullInt64]jsLoc
-}
-
 func makeNewMeetingsJS(meetings []models.VirtualMeeting) *meetingsJS {
 	l := new(meetingsJS)
 	l.Meetings = meetings
@@ -264,27 +281,12 @@ func makeNewMeetingsJS(meetings []models.VirtualMeeting) *meetingsJS {
 	return l
 }
 
-func index(conn *gorm.DB, c *gin.Context, isPost bool) {
-	meetings := []models.VirtualMeeting{}
-	m := models.VirtualMeeting{}
-
-	// TODO: Figure out a long term solution for this.
-	// Setting the timezone manually like this is probably
-	// not the best way to handle it long-term.
-	// loc, _ := time.LoadLocation("America/Los_Angeles")
-	// now := time.Now().In(loc)
-
-	// now = now.Add(time.Duration(-2) * time.Hour)
-	conn.Set("gorm:auto_preload", true)
-
+func createFormAndRPS(conn *gorm.DB, c *gin.Context, isPost bool) (requestParams, *gforms.FormInstance) {
 	rps := paramsFromRequest(c)
 	form := createForm(conn, c, rps)
 	instance := form()
 	if isPost {
-		// pretty.Println("It's a post!")
 		instance = form.FromRequest(c.Request)
-	} else {
-		// pretty.Println("NOT A POST!")
 	}
 
 	fi, exists := instance.GetField("HoursFromStart")
@@ -300,21 +302,34 @@ func index(conn *gorm.DB, c *gin.Context, isPost bool) {
 	if instance.IsValid() {
 		instance.MapTo(&rps)
 	}
+	if rps.Day == defaultDay {
+		rps.Day = rps.getTodayIfDayIsAll()
+	}
+	return rps, instance
+}
 
-	// pretty.Println(instance)
-	// pretty.Println(instance.Errors())
-	// pretty.Println(instance.CleanedData)
-	// pretty.Println(cachedDayOptions)
-	// pretty.Println(form.Html())
+func index(conn *gorm.DB, c *gin.Context, isPost bool) {
+	meetings := []models.VirtualMeeting{}
+	m := models.VirtualMeeting{}
+
+	conn.Set("gorm:auto_preload", true)
+
 	area := models.Area{}
-	if rps.Area != "all" {
+
+	rps, instance := createFormAndRPS(conn, c, isPost)
+
+	if rps.Area != defaultType {
 		conn.FirstOrInit(&area, &models.Area{Slug: rps.Area})
 	}
 
-	if err := m.QueryWithDay(conn).
-		Where("aafinder_meeting.time >= ? AND aafinder_meeting.time <= ?", rps.Time.Format("15:04"), rps.getFutureTime().Format("15:04")).
-		Where("day.slug=?", strings.ToLower(rps.Day)).
-		Find(&meetings).Error; err != nil {
+	query := m.QueryWithDay(conn).
+		Where("aafinder_meeting.time >= ? AND aafinder_meeting.time <= ?", rps.Time.Format("15:04"), rps.getFutureTime().Format("15:04"))
+
+	if rps.Day != defaultDay {
+		query = query.Where("day.slug=?", strings.ToLower(rps.Day))
+	}
+
+	if err := query.Find(&meetings).Error; err != nil {
 		log.Fatal(err)
 	}
 	data := map[string]interface{}{
@@ -347,9 +362,11 @@ func locationDetail(locationID int64, conn *gorm.DB, c *gin.Context) {
 		Find(&meetings).Error; err != nil {
 		log.Fatal(err)
 	}
+	_, instance := createFormAndRPS(conn, c, false)
 
 	c.Set("template", "templates/locations.html")
 	c.Set("data", map[string]interface{}{
+		"form":                instance,
 		"latest_meeting_list": meetings,
 		"meeting_js":          makeNewMeetingsJS(meetings),
 		"area":                location,
@@ -362,6 +379,7 @@ func areaDetail(Slug string, conn *gorm.DB, c *gin.Context) {
 	meetings := []models.VirtualMeeting{}
 	m := models.VirtualMeeting{}
 	area := models.Area{}
+	_, instance := createFormAndRPS(conn, c, false)
 
 	if err := conn.Where(&models.Area{Slug: Slug}).First(&area).Error; err != nil {
 		log.Fatal(err)
@@ -375,6 +393,7 @@ func areaDetail(Slug string, conn *gorm.DB, c *gin.Context) {
 
 	c.Set("template", "templates/area.html")
 	c.Set("data", map[string]interface{}{
+		"form":                instance,
 		"latest_meeting_list": meetings,
 		"meeting_js":          makeNewMeetingsJS(meetings),
 		"area":                area,
