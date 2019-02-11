@@ -194,3 +194,21 @@ func (VirtualMeeting) QueryNoDay(conn *gorm.DB) *gorm.DB {
 		Preload("Codes").
 		Preload("Types")
 }
+
+//User That is stored in the database
+type User struct {
+	ID          int64
+	Password    string
+	LastLogin   time.Time
+	IsSuperuser bool
+	Username    string
+	FirstName   string
+	LastName    string
+	Email       string
+	IsStaff     bool
+	IsActive    bool
+}
+
+func (User) TableName() string {
+	return "auth_user"
+}

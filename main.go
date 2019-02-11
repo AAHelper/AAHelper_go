@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	assetfs "github.com/elazarl/go-bindata-assetfs"
+	"github.com/getsentry/raven-go"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/contrib/static"
@@ -60,17 +61,39 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
+var db *gorm.DB
+
+func connectToOrSetDbConnection() {
+	// conn := getEnv("PG_CONN", )
+	if db == nil {
+		conn := os.Getenv("PG_CONN")
+
+		if conn == "" {
+			log.Fatal("PG_CONN not set.")
+		}
+		var err error
+		db, err = gorm.Open("postgres", conn)
+		if err != nil {
+			log.Fatal("Could not connect to database.")
+		}
+	}
+}
+
+func init() {
+	sentryEnv := os.Getenv("SENTRY_ENV")
+	if sentryEnv == "" {
+		sentryEnv = "development"
+	}
+	connectToOrSetDbConnection()
+	raven.SetDSN("https://36e41022dc29476bbeb4632af557d3a1:baa65a1b92424132b412973b50954803@sentry.io/1391009")
+	raven.SetEnvironment("staging")
+}
+
 func main() {
 	port := os.Getenv("PORT")
 
 	if port == "" {
 		log.Fatal("$PORT must be set")
-	}
-	// conn := getEnv("PG_CONN", )
-	conn := os.Getenv("PG_CONN")
-
-	if conn == "" {
-		log.Fatal("PG_CONN not set.")
 	}
 
 	secret := os.Getenv("SECRET_KEY")
@@ -83,11 +106,8 @@ func main() {
 		csrfSecret = "HEerAanouTtOofmoneYy,sOoHhehAadTtostoPpplayIingPpoker!."
 	}
 
-	db, err := gorm.Open("postgres", conn)
+	connectToOrSetDbConnection()
 
-	if err != nil {
-		panic(err)
-	}
 	if gin.IsDebugging() {
 		db.LogMode(true)
 	}
@@ -109,38 +129,57 @@ func main() {
 
 	// to rebuild the bfs tree run
 	// go-bindata -ignore '.DS*' ./static/...
-	bfs := BFS("static")
 	r.Use(static.Serve("/static", BFS("static")))
-	r.GET("/favicon.ico", func(c *gin.Context) {
-		fileserver := http.FileServer(bfs)
-		r2 := new(http.Request)
-		*r2 = *c.Request
-		r2.URL = new(url.URL)
-		*r2.URL = *c.Request.URL
-		r2.URL.Path = "/favicons/favicon.ico"
+	r.GET("/favicon.ico", favIconDotICO)
 
-		fileserver.ServeHTTP(c.Writer, r2)
-		c.Abort()
-	})
+	r.GET("/", ginpongo2.Pongo2(), indexGet)
+	r.POST("/", ginpongo2.Pongo2(), indexPost)
+	r.GET("/locations/:id", ginpongo2.Pongo2(), locationsById)
+	r.GET("/area/:slug", ginpongo2.Pongo2(), areaSlugDetail)
 
-	r.GET("/", ginpongo2.Pongo2(), func(c *gin.Context) {
-		index(db, c, false)
-	})
-	r.POST("/", ginpongo2.Pongo2(), func(c *gin.Context) {
-		index(db, c, true)
-	})
-	r.GET("/locations/:id", ginpongo2.Pongo2(), func(c *gin.Context) {
-		id := c.Param("id")
-		locationID, _ := strconv.ParseInt(id, 10, 64)
-		locationDetail(locationID, db, c)
-	})
-	r.GET("/area/:slug", ginpongo2.Pongo2(), func(c *gin.Context) {
-		Slug := c.Param("slug")
-		areaDetail(Slug, db, c)
-	})
+	//Authentication
+	r.POST("/login", login)
+	r.GET("/logout", logout)
+	private := r.Group("/alcholic")
+	{
+		private.GET("/", ginpongo2.Pongo2(), alcholicIndex)
+		private.GET("/two", ginpongo2.Pongo2(), alcholicUserEcho)
+	}
+	private.Use(AuthRequired())
 
 	e := r.Run(":" + port)
 	if e != nil {
 		panic("Could not run :(")
 	}
+}
+
+func favIconDotICO(c *gin.Context) {
+	bfs := BFS("static")
+	fileserver := http.FileServer(bfs)
+	r2 := new(http.Request)
+	*r2 = *c.Request
+	r2.URL = new(url.URL)
+	*r2.URL = *c.Request.URL
+	r2.URL.Path = "/favicons/favicon.ico"
+
+	fileserver.ServeHTTP(c.Writer, r2)
+	c.Abort()
+}
+
+func indexGet(c *gin.Context) {
+	index(db, c, false)
+}
+func indexPost(c *gin.Context) {
+	index(db, c, true)
+}
+
+func locationsById(c *gin.Context) {
+	id := c.Param("id")
+	locationID, _ := strconv.ParseInt(id, 10, 64)
+	locationDetail(locationID, db, c)
+}
+
+func areaSlugDetail(c *gin.Context) {
+	Slug := c.Param("slug")
+	areaDetail(Slug, db, c)
 }

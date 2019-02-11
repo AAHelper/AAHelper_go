@@ -6,6 +6,40 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "rv+GCvhh19w7nGRLpTqtf7AS9co=",
+			"path": "github.com/alexandrevicenzi/unchained",
+			"revision": "c1e526a42aa6e630a0b39c9609528208d341d6ea",
+			"revisionTime": "2019-02-10T20:20:23Z"
+		},
+		{
+			"checksumSHA1": "qmRmo+F0XKk6zYOdyPEX+A3Qm9w=",
+			"path": "github.com/alexandrevicenzi/unchained/argon2",
+			"revision": "c1e526a42aa6e630a0b39c9609528208d341d6ea",
+			"revisionTime": "2019-02-10T20:20:23Z",
+			"tree": true
+		},
+		{
+			"checksumSHA1": "ECQE7sSGc5CJoxc7E58eIG8wq+4=",
+			"path": "github.com/alexandrevicenzi/unchained/bcrypt",
+			"revision": "c1e526a42aa6e630a0b39c9609528208d341d6ea",
+			"revisionTime": "2019-02-10T20:20:23Z",
+			"tree": true
+		},
+		{
+			"checksumSHA1": "EgQLsn+fdiMtSzl3nPs7onEEfA8=",
+			"path": "github.com/alexandrevicenzi/unchained/pbkdf2",
+			"revision": "c1e526a42aa6e630a0b39c9609528208d341d6ea",
+			"revisionTime": "2019-02-10T20:20:23Z",
+			"tree": true
+		},
+		{
+			"checksumSHA1": "55w1ZOwa1kRFVmkiBcYCDAd0KGA=",
+			"path": "github.com/certifi/gocertifi",
+			"revision": "abcd5707844888d7088866f25df3a7a2ac337dc4",
+			"revisionTime": "2019-01-05T02:10:04Z",
+			"tree": true
+		},
+		{
 			"checksumSHA1": "pXA0VXOMBMY18/4WFJjqnsT51jo=",
 			"path": "github.com/dchest/uniuri",
 			"revision": "8902c56451e9b58ff940bbe5fec35d5f9c04584a",
@@ -22,6 +56,18 @@
 			"path": "github.com/flosch/pongo2",
 			"revision": "79872a7b27692599b259dc751bed8b03581dd0de",
 			"revisionTime": "2018-12-25T14:00:29Z"
+		},
+		{
+			"checksumSHA1": "S5T0MIth2LH0JiBwqNQFxsjbNUw=",
+			"path": "github.com/getsentry/raven-go",
+			"revision": "67f8d30e8de7d9c3e2733eb8e17e0e3eb0b5632e",
+			"revisionTime": "2019-01-31T11:58:28Z"
+		},
+		{
+			"checksumSHA1": "e4+CsW5NmTXkRkvr+yvnz3TA0b0=",
+			"path": "github.com/gin-contrib/sentry",
+			"revision": "7a3855b0e7565dc98aa71c22ffb1ecacfc44c4e5",
+			"revisionTime": "2018-12-27T15:55:24Z"
 		},
 		{
 			"checksumSHA1": "zPsYN/5ad47ZJsXJ10dCQ8wUQy0=",
@@ -210,6 +256,45 @@
 			"path": "github.com/utrack/gin-csrf",
 			"revision": "0ef7b41f5cd579866132683f75bff7966621ca8a",
 			"revisionTime": "2019-02-08T09:02:32Z"
+		},
+		{
+			"checksumSHA1": "GSWr1MmH2Lwqu8wJi/XYCmU54pw=",
+			"path": "golang.org/x/crypto/argon2",
+			"revision": "aabede6cba87e37f413b3e60ebfc214f8eeca1b0",
+			"revisionTime": "2018-08-16T21:30:07Z",
+			"tree": true
+		},
+		{
+			"checksumSHA1": "oCH3J96RWvO8W4xjix47PModpio=",
+			"path": "golang.org/x/crypto/bcrypt",
+			"revision": "aabede6cba87e37f413b3e60ebfc214f8eeca1b0",
+			"revisionTime": "2018-08-16T21:30:07Z"
+		},
+		{
+			"checksumSHA1": "41EmGZpxgWkDS3XgweycyXDDN+U=",
+			"path": "golang.org/x/crypto/blake2b",
+			"revision": "aabede6cba87e37f413b3e60ebfc214f8eeca1b0",
+			"revisionTime": "2018-08-16T21:30:07Z",
+			"tree": true
+		},
+		{
+			"checksumSHA1": "oVPHWesOmZ02vLq2fglGvf+AMgk=",
+			"path": "golang.org/x/crypto/blowfish",
+			"revision": "aabede6cba87e37f413b3e60ebfc214f8eeca1b0",
+			"revisionTime": "2018-08-16T21:30:07Z"
+		},
+		{
+			"checksumSHA1": "1MGpGDQqnUoRpv7VEcQrXOBydXE=",
+			"path": "golang.org/x/crypto/pbkdf2",
+			"revision": "aabede6cba87e37f413b3e60ebfc214f8eeca1b0",
+			"revisionTime": "2018-08-16T21:30:07Z"
+		},
+		{
+			"checksumSHA1": "1JpcSPq74yKBUGqZi0pS+/MXOwk=",
+			"path": "golang.org/x/sys/cpu",
+			"revision": "afcc84fd7533758f95a6e93ae710aa945a0b7e73",
+			"revisionTime": "2019-02-01T09:18:11Z",
+			"tree": true
 		},
 		{
 			"checksumSHA1": "UQKuKY1U1JFrGVyKzE7JXMh4f/8=",
