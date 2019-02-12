@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/AAHelper/AAHelper_go/models"
+
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/flosch/pongo2"
 	"github.com/getsentry/raven-go"
@@ -90,6 +92,22 @@ func init() {
 	raven.SetEnvironment("staging")
 }
 
+//UserMiddleware adds a user to the gin context
+func PongoContextMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user, exists := c.Get("user")
+		if !exists {
+			user = models.User{}
+		}
+		context := map[string]interface{}{
+			"csrf_token": csrf.GetToken(c),
+			"user":       user,
+		}
+		c.Set("context", context)
+		c.Next()
+	}
+}
+
 func main() {
 	port := os.Getenv("PORT")
 
@@ -141,18 +159,19 @@ func main() {
 	r.Use(static.Serve("/static", BFS("static")))
 	r.GET("/favicon.ico", favIconDotICO)
 
-	r.GET("/", ginpongo2.Pongo2(), indexGet)
-	r.POST("/", ginpongo2.Pongo2(), indexPost)
-	r.GET("/locations/:id", ginpongo2.Pongo2(), locationsById)
-	r.GET("/area/:slug", ginpongo2.Pongo2(), areaSlugDetail)
+	r.GET("/", ginpongo2.Pongo2(), UserMiddleWare(), PongoContextMiddleware(), indexGet)
+	r.POST("/", ginpongo2.Pongo2(), UserMiddleWare(), PongoContextMiddleware(), indexPost)
+	r.GET("/locations/:id", ginpongo2.Pongo2(), UserMiddleWare(), PongoContextMiddleware(), locationsById)
+	r.GET("/area/:slug", ginpongo2.Pongo2(), UserMiddleWare(), PongoContextMiddleware(), areaSlugDetail)
 
 	//Authentication
-	r.POST("/login", login)
-	r.GET("/logout", logout)
+	r.GET("/login", ginpongo2.Pongo2(), login)
+	r.POST("/login", ginpongo2.Pongo2(), login)
+	r.GET("/logout", ginpongo2.Pongo2(), logout)
 	private := r.Group("/alcholic")
 	{
-		private.GET("/", ginpongo2.Pongo2(), alcholicIndex)
-		private.GET("/two", ginpongo2.Pongo2(), alcholicUserEcho)
+		private.GET("/", ginpongo2.Pongo2(), UserMiddleWare(), alcholicIndex)
+		private.GET("/two", ginpongo2.Pongo2(), UserMiddleWare(), alcholicUserEcho)
 	}
 	private.Use(AuthRequired())
 

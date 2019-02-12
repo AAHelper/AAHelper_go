@@ -332,22 +332,29 @@ func index(conn *gorm.DB, c *gin.Context, isPost bool) {
 	if err := query.Find(&meetings).Error; err != nil {
 		log.Fatal(err)
 	}
-	data := map[string]interface{}{
-		"form":                instance,
-		"area":                area,
-		"show_errors":         isPost,
-		"latest_meeting_list": meetings,
-		"meeting_js":          makeNewMeetingsJS(meetings),
-		"now":                 rps.Time,
-		"hours_from":          rps.getFutureTime(),
-		"today":               rps.Day,
-		"csrf_token":          csrf.GetToken(c),
-	}
+	// user, exists := c.Get("user")
+	// if !exists {
+	// 	user = models.User{}
+	// }
+	// pretty.Println(user)
+
+	context := c.GetStringMap("context")
+	context["form"] = instance
+	context["area"] = area
+	context["show_errors"] = isPost
+	context["latest_meeting_list"] = meetings
+	context["meeting_js"] = makeNewMeetingsJS(meetings)
+	context["now"] = rps.Time
+	context["hours_from"] = rps.getFutureTime()
+	context["today"] = rps.Day
+	context["csrf_token"] = csrf.GetToken(c)
+	// context["user"] = user
+
 	// if gin.IsDebugging() {
 	// 	pretty.Println(data)
 	// }
-	c.Set("template", "templates/index.html")
-	c.Set("data", data)
+	c.Set("template", "index.html")
+	c.Set("data", context)
 }
 
 func locationDetail(locationID int64, conn *gorm.DB, c *gin.Context) {
@@ -363,16 +370,17 @@ func locationDetail(locationID int64, conn *gorm.DB, c *gin.Context) {
 		log.Fatal(err)
 	}
 	_, instance := createFormAndRPS(conn, c, false)
+	c.Set("template", "locations.html")
 
-	c.Set("template", "templates/locations.html")
-	c.Set("data", map[string]interface{}{
-		"form":                instance,
-		"latest_meeting_list": meetings,
-		"meeting_js":          makeNewMeetingsJS(meetings),
-		"area":                location,
-		"index":               false,
-		"csrf_token":          csrf.GetToken(c),
-	})
+	context := c.GetStringMap("context")
+	context["form"] = instance
+	context["latest_meeting_list"] = meetings
+	context["meeting_js"] = makeNewMeetingsJS(meetings)
+	context["area"] = location
+	context["index"] = false
+	context["csrf_token"] = csrf.GetToken(c)
+	c.Set("data", context)
+
 }
 
 func areaDetail(Slug string, conn *gorm.DB, c *gin.Context) {
@@ -391,13 +399,13 @@ func areaDetail(Slug string, conn *gorm.DB, c *gin.Context) {
 		log.Fatal(err)
 	}
 
-	c.Set("template", "templates/area.html")
-	c.Set("data", map[string]interface{}{
-		"form":                instance,
-		"latest_meeting_list": meetings,
-		"meeting_js":          makeNewMeetingsJS(meetings),
-		"area":                area,
-		"index":               false,
-		"csrf_token":          csrf.GetToken(c),
-	})
+	c.Set("template", "area.html")
+	context := c.GetStringMap("context")
+	context["form"] = instance
+	context["latest_meeting_list"] = meetings
+	context["meeting_js"] = makeNewMeetingsJS(meetings)
+	context["area"] = area
+	context["index"] = false
+	context["csrf_token"] = csrf.GetToken(c)
+	c.Set("data", context)
 }

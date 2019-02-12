@@ -32,6 +32,25 @@ func AuthRequired() gin.HandlerFunc {
 	}
 }
 
+//UserMiddleware adds a user to the gin context
+func UserMiddleWare() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		session := sessions.Default(c)
+		userid := session.Get(UserID)
+		userid, canCast := userid.(int64)
+		if canCast && userid != 0 {
+			pretty.Println(userid)
+			user := models.User{}
+			err := db.Where(&models.User{ID: userid.(int64)}).First(&user).Error
+			if err == nil {
+				// Continue down the chain to handler etc
+				c.Set("user", user)
+				c.Next()
+			}
+		}
+	}
+}
+
 func login(c *gin.Context) {
 	session := sessions.Default(c)
 	username := c.PostForm("username")
@@ -42,14 +61,7 @@ func login(c *gin.Context) {
 	// if err := query.Find(&meetings).Error; err != nil {
 	// 	log.Fatal(err)
 	// }
-	if err := db.Where(&models.User{Username: strings.Trim(username, "")}).First(&user).Error; err != nil {
-		c.Set("template", "templates/auth/login/login.html")
-		c.Set("data", map[string]interface{}{
-			"error":      "Username or password is incorrect",
-			"csrf_token": csrf.GetToken(c),
-		})
-		c.Status(301)
-	}
+	context := c.GetStringMap("context")
 
 	// if strings.Trim(username, " ") == "" || strings.Trim(password, " ") == "" {
 	// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "Parameters can't be empty"})
@@ -68,6 +80,8 @@ func login(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
 	}
+	c.Set("data", context)
+
 }
 
 func logout(c *gin.Context) {
