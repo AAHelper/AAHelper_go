@@ -1,13 +1,13 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"strings"
 
+	"github.com/kr/pretty"
+
 	"github.com/AAHelper/AAHelper_go/models"
 	"github.com/alexandrevicenzi/unchained"
-	csrf "github.com/utrack/gin-csrf"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -26,7 +26,7 @@ func AuthRequired() gin.HandlerFunc {
 			c.Redirect(302, "/login/")
 		} else {
 			// Continue down the chain to handler etc
-			c.Set("user", user)
+			// c.Set("user", user)
 			c.Next()
 		}
 	}
@@ -53,32 +53,53 @@ func UserMiddleWare() gin.HandlerFunc {
 
 func login(c *gin.Context) {
 	session := sessions.Default(c)
-	username := c.PostForm("username")
-	password := c.PostForm("password")
-
-	user := models.User{}
-	// rows, err := conn.Model(&models.User{}).Select("area, slug").Order("id desc").Rows()
-	// if err := query.Find(&meetings).Error; err != nil {
-	// 	log.Fatal(err)
+	c.Set("template", "auth/login.html")
+	// context := map[string]interface{}{
+	// 	"csrf_token": csrf.GetToken(c),
 	// }
 	context := c.GetStringMap("context")
 
-	// if strings.Trim(username, " ") == "" || strings.Trim(password, " ") == "" {
-	// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "Parameters can't be empty"})
-	// 	return
-	// }
-	valid, _ := unchained.CheckPassword(password, user.Password)
+	if c.Request.Method == "POST" {
+		username := c.PostForm("username")
+		password := c.PostForm("password")
 
-	if valid {
-		session.Set(UserID, user.ID)
-		err := session.Save()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate session token"})
-		} else {
-			c.JSON(http.StatusOK, gin.H{"message": "Successfully authenticated user"})
+		user := models.User{}
+		// rows, err := conn.Model(&models.User{}).Select("area, slug").Order("id desc").Rows()
+		// if err := query.Find(&meetings).Error; err != nil {
+		// 	log.Fatal(err)
+		// }
+		if err := db.Where(&models.User{Username: strings.Trim(username, "")}).First(&user).Error; err != nil {
+			context["error"] = "Authentication failed, Invalid username or password"
+			// c.Set("template", "templates/auth/login/login.html")
+			// c.Set("data", map[string]interface{}{
+			// 	"error":      "Username or password is incorrect",
+			// 	"csrf_token": csrf.GetToken(c),
+			// })
+			c.Status(301)
 		}
-	} else {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
+
+		// if strings.Trim(username, " ") == "" || strings.Trim(password, " ") == "" {
+		// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "Parameters can't be empty"})
+		// 	return
+		// }
+		valid, _ := unchained.CheckPassword(password, user.Password)
+
+		if valid {
+			session.Set(UserID, user.ID)
+			err := session.Save()
+			if err != nil {
+				// c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate session token"})
+				context["error"] = "Failed to generate session token"
+				c.Status(500)
+			} else {
+				// c.JSON(http.StatusOK, gin.H{"message": "Successfully authenticated user"})
+				c.Redirect(302, "/")
+
+			}
+		} else {
+			context["error"] = "Authentication failed, Invalid username or password"
+			// c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
+		}
 	}
 	c.Set("data", context)
 
@@ -86,12 +107,12 @@ func login(c *gin.Context) {
 
 func logout(c *gin.Context) {
 	session := sessions.Default(c)
-	user := session.Get("user")
+	user := session.Get(UserID)
+	c.Set("template", "auth/logout.html")
 	if user == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid session token"})
 	} else {
-		log.Println(user)
-		session.Delete("user")
+		session.Delete(UserID)
 		session.Save()
 		c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
 	}

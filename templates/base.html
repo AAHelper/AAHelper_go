@@ -90,6 +90,16 @@
 
         </div>
         <!-- Grid column -->
+			<div class="col-md-6 mt-md-0 mt-3">
+			{% if user.ID %}
+				<p><a href="/logout">Logout {{ user.Username }}</a></p>
+				{% comment %} <p><a href="/alcholic/meeting/add">Add A meeting</a></p>
+				<p><a href="/alcholic">View your meetings</a></p> {% endcomment %}
+			{% else %}
+				<a href="/login">Login</a>
+				{% comment %} <p><a href="/register">Register</a></p> {% endcomment %}
+			{% endif %}
+			</div>
 
       </div>
       <!-- Grid row -->

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+		<div class="row">
+			{# <input type="checkbox" id="drawer-control" class="drawer"> #}
+			<div class="col col-sm col-md col-lg">
+                {% if error %} <h1>{{error}}</h1>{% endif %}
+                <H2> Successfully logged out <a href="/">Go Back to the homepage</a></H2>
+            </div>
+        </div>
+</form>
+{% endblock %}
