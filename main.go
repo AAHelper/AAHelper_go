@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	assetfs "github.com/elazarl/go-bindata-assetfs"
+	"github.com/flosch/pongo2"
 	"github.com/getsentry/raven-go"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -115,6 +116,14 @@ func main() {
 	defer db.Close()
 
 	r := gin.Default()
+	// pongo2.NewLocalFileSystemLoader
+	loader, err := pongo2.NewLocalFileSystemLoader("./templates")
+	if err != nil {
+		panic(err)
+	}
+	MyLoader := loader
+	MySet := pongo2.NewSet("default", MyLoader)
+	pongo2.FromFile = MySet.FromFile
 
 	store := cookie.NewStore([]byte(secret))
 	session := sessions.Sessions("mysession", store)
