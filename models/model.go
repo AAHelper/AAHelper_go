@@ -180,7 +180,7 @@ func (VirtualMeeting) QueryWithDay(conn *gorm.DB) *gorm.DB {
 		Joins("INNER JOIN aafinder_meetingtype as day ON aafinder_meeting_types.meetingtype_id=day.id").
 		Joins("LEFT OUTER JOIN aafinder_meetingarea as area ON aafinder_meeting.area_id=area.id").
 		Joins("LEFT OUTER JOIN aafinder_location as location ON aafinder_meeting.location_id=location.id").
-		Order("aafinder_meeting.time ASC, aafinder_meeting.name DESC").
+		Order("aafinder_meeting.time ASC, area ASC, aafinder_meeting.name DESC").
 		Preload("Codes").
 		Preload("Types")
 }
@@ -190,7 +190,7 @@ func (VirtualMeeting) QueryNoDay(conn *gorm.DB) *gorm.DB {
 	return conn.Select("aafinder_meeting.id as id, name, time, url, area.area as area, area.slug as area_slug, location.id as location_id, location.address_string as address_string, location.location as location, notes").
 		Joins("LEFT OUTER JOIN aafinder_meetingarea as area ON aafinder_meeting.area_id=area.id").
 		Joins("LEFT OUTER JOIN aafinder_location as location ON aafinder_meeting.location_id=location.id").
-		Order("aafinder_meeting.time ASC, aafinder_meeting.name DESC").
+		Order("aafinder_meeting.time ASC, area ASC, aafinder_meeting.name DESC").
 		Preload("Codes").
 		Preload("Types")
 }
