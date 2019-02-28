@@ -102,6 +102,18 @@
 			"revisionTime": "2018-12-08T21:45:19Z"
 		},
 		{
+			"checksumSHA1": "qHpoguf0n1mueKbYN5/Cr10461M=",
+			"path": "github.com/heroku/x/hmetrics",
+			"revision": "85e5aa5e6aa19919252eec6561dcafafba3be425",
+			"revisionTime": "2018-11-02T21:51:00Z"
+		},
+		{
+			"checksumSHA1": "2eVQMk8j6gpl/qT6OpZmBJjsw2s=",
+			"path": "github.com/heroku/x/hmetrics/onload",
+			"revision": "85e5aa5e6aa19919252eec6561dcafafba3be425",
+			"revisionTime": "2018-11-02T21:51:00Z"
+		},
+		{
 			"checksumSHA1": "Cq9h7eDNXXyR/qJPvO8/Rk4pmFg=",
 			"path": "github.com/jessevdk/go-assets",
 			"revision": "4f4301a06e153ff90e17793577ab6bf79f8dc5c5",

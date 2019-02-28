@@ -8,6 +8,9 @@ import (
 	"strconv"
 	"strings"
 
+	// "github.com/gin-contrib/pprof"
+	_ "github.com/heroku/x/hmetrics/onload"
+
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
