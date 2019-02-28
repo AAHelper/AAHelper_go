@@ -6,6 +6,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "hrma2dKfnRXeiDvDqXGWA6Wbtfc=",
+			"path": "github.com/bluele/gcache",
+			"revision": "2016d595ccb01f276e65fd5a285c863feb1903c3",
+			"revisionTime": "2019-02-03T14:45:25Z"
+		},
+		{
 			"checksumSHA1": "pXA0VXOMBMY18/4WFJjqnsT51jo=",
 			"path": "github.com/dchest/uniuri",
 			"revision": "8902c56451e9b58ff940bbe5fec35d5f9c04584a",

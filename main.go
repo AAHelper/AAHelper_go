@@ -19,7 +19,8 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/ngerakines/ginpongo2"
+
+	// "github.com/ngerakines/ginpongo2"
 	csrf "github.com/utrack/gin-csrf"
 )
 
@@ -126,18 +127,18 @@ func main() {
 		c.Abort()
 	})
 
-	r.GET("/", ginpongo2.Pongo2(), func(c *gin.Context) {
+	r.GET("/", Pongo2(), func(c *gin.Context) {
 		index(db, c, false)
 	})
-	r.POST("/", ginpongo2.Pongo2(), func(c *gin.Context) {
+	r.POST("/", Pongo2(), func(c *gin.Context) {
 		index(db, c, true)
 	})
-	r.GET("/locations/:id", ginpongo2.Pongo2(), func(c *gin.Context) {
+	r.GET("/locations/:id", Pongo2(), func(c *gin.Context) {
 		id := c.Param("id")
 		locationID, _ := strconv.ParseInt(id, 10, 64)
 		locationDetail(locationID, db, c)
 	})
-	r.GET("/area/:slug", ginpongo2.Pongo2(), func(c *gin.Context) {
+	r.GET("/area/:slug", Pongo2(), func(c *gin.Context) {
 		Slug := c.Param("slug")
 		areaDetail(Slug, db, c)
 	})
