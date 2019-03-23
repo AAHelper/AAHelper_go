@@ -255,7 +255,7 @@ func createPopUpText(m models.VirtualMeeting) string {
 		m.URL,
 		replaceSingleQuote(m.AddressString),
 		days,
-		m.Time.Format("15:04"),
+		m.Time.Format("3:04 PM"),
 	)
 
 }
