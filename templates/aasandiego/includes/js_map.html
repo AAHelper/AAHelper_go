@@ -35,9 +35,9 @@
 			{% endif %}
         {% endfor %}
 		UpdateMapWithGeolocation();
-		{% comment %} if (markers != 1){
+		if (markers != 1){
 			map.fitBounds(bounds);
-		} {% endcomment %}
+		}
         google.maps.event.addListener(map, "click", function(event) {
             infowindow.close();
         });
