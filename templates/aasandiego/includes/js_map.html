@@ -18,7 +18,7 @@
 				var marker = new google.maps.Marker({
 					position: point,
 					map: map,
-					title: '{{ meeting.Meeting.Name }}',
+					title: '{{ meeting.Meeting.Name }}.',
 					{% comment %} label: '{{ meeting.Meeting.Name }}' {% endcomment %}
 				});
 				marker['infowindow']  = new google.maps.InfoWindow({
