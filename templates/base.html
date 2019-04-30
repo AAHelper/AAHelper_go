@@ -2,7 +2,7 @@
 <head>
 	<title>AA San Diego Helper</title>
 	<link rel="stylesheet" href="/static/styles.min.css">
-<style>
+	<style>
        /* Set the size of the div element that contains the map */
       #map {
         height: 50%;  /* The height is 400 pixels */
@@ -77,12 +77,10 @@
 				{% block content %}{% endblock %}
 			</main>
 		</div>
-		<footer>
+		<footer class="row">
 <!-- Grid row -->
-      <div class="row">
-
         <!-- Grid column -->
-        <div class="col-md-6 mt-md-0 mt-3">
+        <div class="col-md-6 col-lg-6 col-sm-12">
 
           <!-- Content -->
           <h5 class="text-uppercase">Problems with the site?</h5>
@@ -91,11 +89,17 @@
         </div>
         <!-- Grid column -->
 
-      </div>
-      <!-- Grid row -->
+        <!-- Grid column -->
+        <div class="col-md-6 col-lg-6 col-sm-12">
 
-			<div class="footer-copyright text-center">{% now "2006" %}
-				<a href="https://github.com/AAHelper/AAHelper"> AAHelper.com</a>
+          <!-- Content -->
+          <h5 class="text-uppercase">Need some merch?</h5>
+          <p>Get some from <a href="https://www.personalfears.com/?utm_source=aahelper&utm_medium=site&utm_campaign=aahelper-footer-link">Personal Fears</a>.</p>
+        </div>
+        <!-- Grid column -->
+
+			<div class="col-md-12 col-lg-12 col-sm-12"><p style="text-align:center;">{% now "2006" %}
+				<a href="https://github.com/AAHelper/AAHelper"> AAHelper.com</a></p>
 			</div>
 		</footer>
 	</div>
