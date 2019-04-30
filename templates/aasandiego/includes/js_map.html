@@ -9,7 +9,7 @@
 		var mapDiv = document.getElementById('map');
 		map = new google.maps.Map(mapDiv, {
 			center: {lat: 32.7174, lng: -117.1628},
-			zoom: 11,
+			zoom: 5,
 		});
 		var markers=0;
         {% for id, meeting in meeting_js.Locations %}
@@ -18,8 +18,8 @@
 				var marker = new google.maps.Marker({
 					position: point,
 					map: map,
-					title: '{{ meeting.meeting.Name }}',
-					{% comment %} label: '{{ meeting.meeting.Name }}' {% endcomment %}
+					title: '{{ meeting.Meeting.Name }}',
+					{% comment %} label: '{{ meeting.Meeting.Name }}' {% endcomment %}
 				});
 				marker['infowindow']  = new google.maps.InfoWindow({
 						content: '{{ meeting.PopUpText|safe }}<p><a href="/locations/{{meeting.Meeting.LocationID.Value}}">Other Meetings at this location.</a></p>',
