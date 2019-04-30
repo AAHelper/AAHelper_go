@@ -34,9 +34,12 @@
 
 			{% endif %}
         {% endfor %}
-		UpdateMapWithGeolocation();
+		{% comment %} UpdateMapWithGeolocation(); {% endcomment %}
 		if (markers != 1){
-			map.fitBounds(bounds);
+			google.maps.event.addListenerOnce(map, 'idle', function() {
+				map.fitBounds(bounds);
+			});
+			{% comment %} map.fitBounds(bounds); {% endcomment %}
 		}
         google.maps.event.addListener(map, "click", function(event) {
             infowindow.close();
@@ -87,7 +90,7 @@
 				{% comment %} infoWindow.setPosition(pos);
 				infoWindow.setContent('Location found.');
 				infoWindow.open(map); {% endcomment %}
-				map.setCenter(pos);
+				{% comment %} map.setCenter(pos); {% endcomment %}
 			}, function () {
 				handleLocationError(true, infoWindow, map.getCenter());
 			});
